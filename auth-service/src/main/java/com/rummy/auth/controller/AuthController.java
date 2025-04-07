@@ -1,7 +1,10 @@
 package com.rummy.auth.controller;
 
 import com.rummy.auth.service.OTPService;
+import com.rummy.auth.service.AuthenticationService;
 import com.rummy.auth.security.JwtTokenUtil;
+import com.rummy.auth.model.AuthenticateRequest;
+import com.rummy.auth.model.AuthenticateResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +13,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 @RestController
-@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
@@ -19,7 +21,10 @@ public class AuthController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-    @PostMapping("/generate-otp")
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @PostMapping("/api/auth/generate-otp")
     public ResponseEntity<GenerateOTPResponse> generateOTP(
             @Valid @RequestBody GenerateOTPRequest request,
             @RequestHeader("Device-Id") String deviceId) {
@@ -27,7 +32,7 @@ public class AuthController {
         return ResponseEntity.ok(new GenerateOTPResponse("OTP sent successfully"));
     }
 
-    @PostMapping("/verify-otp")
+    @PostMapping("/api/auth/verify-otp")
     public ResponseEntity<VerifyOTPResponse> verifyOTP(
             @Valid @RequestBody VerifyOTPRequest request,
             @RequestHeader("Device-Id") String deviceId) {
@@ -37,6 +42,13 @@ public class AuthController {
             return ResponseEntity.ok(new VerifyOTPResponse(token));
         }
         return ResponseEntity.badRequest().body(new VerifyOTPResponse("Invalid OTP"));
+    }
+
+    @PostMapping("/api/v1/login/authenticate")
+    public ResponseEntity<AuthenticateResponse> authenticate(
+            @Valid @RequestBody AuthenticateRequest request) {
+        AuthenticateResponse response = authenticationService.authenticate(request);
+        return ResponseEntity.ok(response);
     }
 }
 
@@ -51,6 +63,7 @@ class GenerateOTPRequest {
     public void setMobileNumber(String mobileNumber) {
         this.mobileNumber = mobileNumber;
     }
+
 }
 
 class GenerateOTPResponse {

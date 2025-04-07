@@ -2,11 +2,14 @@ C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\r
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\config\JwtConfig.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\model\OTP.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\service\OTPService.java
-C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\config\SecurityConfig.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\model\ClientCredential.java
+C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\security\JwtTokenUtil.java
+C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\service\AuthenticationService.java
+C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\model\AuthenticateResponse.java
+C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\model\AuthenticateRequest.java
+C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\config\SecurityConfig.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\service\ClientCredentialService.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\controller\TokenController.java
-C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\security\JwtTokenUtil.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\controller\AuthController.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\repository\OTPRepository.java
 C:\Java_workPlace\poject23\project23\auth-service\src\main\java\com\rummy\auth\AuthServiceApplication.java
