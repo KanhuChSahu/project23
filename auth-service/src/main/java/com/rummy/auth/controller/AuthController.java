@@ -27,9 +27,22 @@ public class AuthController {
     @PostMapping("/api/auth/generate-otp")
     public ResponseEntity<GenerateOTPResponse> generateOTP(
             @Valid @RequestBody GenerateOTPRequest request,
+            @RequestHeader("Authorization") String authToken,
             @RequestHeader("Device-Id") String deviceId) {
-        String otp = otpService.generateOTP(request.getMobileNumber());
-        return ResponseEntity.ok(new GenerateOTPResponse("OTP sent successfully"));
+        String token = authToken.replace("Bearer ", "");
+        try {
+            String mobileNumber = jwtTokenUtil.extractMobileNumber(token);
+            String deviceIdFromToken = jwtTokenUtil.extractDeviceId(token);
+            
+            if (!deviceId.equals(deviceIdFromToken)) {
+                return ResponseEntity.status(401).body(new GenerateOTPResponse("Invalid device ID"));
+            }
+            
+            String otp = otpService.generateOTP(request.getMobileNumber());
+            return ResponseEntity.ok(new GenerateOTPResponse("OTP sent successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(new GenerateOTPResponse("Invalid or expired token"));
+        }
     }
 
     @PostMapping("/api/auth/verify-otp")

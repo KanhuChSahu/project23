@@ -3,59 +3,81 @@
 ## Base URLs
 - Auth Service: `http://localhost:8081`
 - Player Service: `http://localhost:8082`
+- Game Service: `http://localhost:8083`
+
+## Testing Flow Sequence
+
+1. Generate OTP (Authentication)
+2. Verify OTP and obtain JWT token
+3. Create player profile
+4. Join game room
+5. Play game
+6. View game history
+
+## Prerequisites for Testing
+- Postman or similar API testing tool
+- Valid phone number for OTP verification
+- JWT token (obtained after OTP verification)
 
 ## Authentication Service APIs
 
-### Generate OTP
+### 1. Generate OTP
 ```http
 POST /api/auth/generate-otp
 Content-Type: application/json
+Authorization: Bearer <access_token>
+Device-Id: <device_id>
 
 Request Body:
 {
-    "phoneNumber": "+919876543210"
+    "mobileNumber": "1234567890"
 }
 
 Response (200 OK):
 {
-    "message": "OTP sent successfully",
-    "timestamp": "2024-01-20T10:30:00Z"
+    "message": "OTP sent successfully"
 }
 
-Response (400 Bad Request):
+Response (401 Unauthorized):
 {
-    "error": "Invalid phone number format",
-    "timestamp": "2024-01-20T10:30:00Z"
+    "message": "Invalid or expired token"
 }
 ```
 
 ### Verify OTP
 ```http
-POST /api/auth/verify-otp
+POST /api/v1/login/authenticate
 Content-Type: application/json
 
 Request Body:
 {
-    "phoneNumber": "+919876543210",
+    "mobileNo": "1234567890",
     "otp": "123456"
 }
 
 Response (200 OK):
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "expiresIn": 86400000
+    "error": false,
+    "errorCode": 1000,
+    "message": "Authenticated successfully",
+    "data": {
+        "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+        "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
 }
 
 Response (400 Bad Request):
 {
-    "error": "Invalid OTP",
-    "timestamp": "2024-01-20T10:30:00Z"
+    "error": true,
+    "errorCode": 2004,
+    "message": "Invalid or expired OTP",
+    "data": null
 }
 ```
 
 ## Player Service APIs
 
-### Create Player Profile
+### 3. Create Player Profile
 ```http
 POST /api/players
 Authorization: Bearer <jwt_token>
@@ -135,6 +157,71 @@ Response (404 Not Found):
 {
     "error": "Player not found",
     "timestamp": "2024-01-20T10:35:00Z"
+}
+```
+
+## Game Service APIs
+
+### 4. Join Game Room
+```http
+POST /api/games/join
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+Request Body:
+{
+    "gameType": "POINTS_RUMMY",
+    "entryFee": 100
+}
+
+Response (200 OK):
+{
+    "gameId": "game123",
+    "players": ["player123"],
+    "status": "WAITING",
+    "gameType": "POINTS_RUMMY",
+    "entryFee": 100,
+    "timestamp": "2024-01-20T11:00:00Z"
+}
+```
+
+### 5. Get Game Status
+```http
+GET /api/games/{gameId}
+Authorization: Bearer <jwt_token>
+
+Response (200 OK):
+{
+    "gameId": "game123",
+    "players": ["player123", "player456"],
+    "status": "IN_PROGRESS",
+    "currentTurn": "player123",
+    "deck": {
+        "remainingCards": 52
+    },
+    "timestamp": "2024-01-20T11:05:00Z"
+}
+```
+
+### 6. Play Move
+```http
+POST /api/games/{gameId}/move
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+Request Body:
+{
+    "moveType": "DRAW_CARD",
+    "cardId": "H7"
+}
+
+Response (200 OK):
+{
+    "moveId": "move123",
+    "playerId": "player123",
+    "moveType": "DRAW_CARD",
+    "cardId": "H7",
+    "timestamp": "2024-01-20T11:10:00Z"
 }
 ```
 
