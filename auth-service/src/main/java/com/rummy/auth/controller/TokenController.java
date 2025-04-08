@@ -2,8 +2,10 @@ package com.rummy.auth.controller;
 
 import com.rummy.auth.security.JwtTokenUtil;
 import com.rummy.auth.service.ClientCredentialService;
+import com.rummy.auth.model.ErrorResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,18 +22,36 @@ public class TokenController {
     private ClientCredentialService clientCredentialService;
 
     @PostMapping
-    public ResponseEntity<TokenResponse> getAccessToken(
-            @Valid @RequestBody TokenRequest request) {
-        if (!"client_credentials".equals(request.getGrantType())) {
-            return ResponseEntity.badRequest().body(new TokenResponse("Invalid grant type"));
+    public ResponseEntity<?> getAccessToken(@Valid @RequestBody TokenRequest request) {
+        // Validate request parameters
+        if (request.getGrantType() == null || request.getClientId() == null || request.getClientSecret() == null) {
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("invalid_request", "Missing required parameters"));
         }
 
+        // Validate grant type
+        if (!"client_credentials".equalsIgnoreCase(request.getGrantType())) {
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("unsupported_grant_type", "Only 'client_credentials' grant type is supported"));
+        }
+
+        // Validate client credentials
         if (!clientCredentialService.validateClientCredentials(request.getClientId(), request.getClientSecret())) {
-            return ResponseEntity.badRequest().body(new TokenResponse("Invalid client credentials"));
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("invalid_client", "Invalid client credentials"));
         }
 
-        String token = jwtTokenUtil.generateToken(request.getClientId(), request.getClientSecret());
-        return ResponseEntity.ok(new TokenResponse(token));
+        try {
+            String token = jwtTokenUtil.generateToken(request.getClientId(), request.getClientSecret());
+            return ResponseEntity.ok(new TokenResponse(token));
+        } catch (Exception e) {
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("server_error", "Error generating token"));
+        }
     }
 }
 
