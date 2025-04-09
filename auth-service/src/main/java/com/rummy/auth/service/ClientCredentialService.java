@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class ClientCredentialService {
 
@@ -16,15 +18,41 @@ public class ClientCredentialService {
     private PasswordEncoder passwordEncoder;
 
     public boolean validateClientCredentials(String clientId, String clientSecret) {
+        if (!isValidUUID(clientSecret)) {
+            return false;
+        }
         return clientCredentialRepository.findByClientIdAndActiveTrue(clientId)
                 .map(credential -> passwordEncoder.matches(clientSecret, credential.getClientSecret()))
                 .orElse(false);
     }
 
-    public void saveClientCredential(String clientId, String clientSecret) {
+    public String generateClientCredential(String clientId) {
+        String clientSecret = UUID.randomUUID().toString();
         ClientCredential credential = new ClientCredential();
         credential.setClientId(clientId);
         credential.setClientSecret(passwordEncoder.encode(clientSecret));
+        credential.setActive(true);
         clientCredentialRepository.save(credential);
+        return clientSecret;
+    }
+
+    public void saveClientCredential(String clientId, String clientSecret) {
+        if (!isValidUUID(clientSecret)) {
+            throw new IllegalArgumentException("Client secret must be a valid UUID");
+        }
+        ClientCredential credential = new ClientCredential();
+        credential.setClientId(clientId);
+        credential.setClientSecret(passwordEncoder.encode(clientSecret));
+        credential.setActive(true);
+        clientCredentialRepository.save(credential);
+    }
+
+    private boolean isValidUUID(String str) {
+        try {
+            UUID.fromString(str);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

@@ -18,9 +18,20 @@ public class AuthenticationService {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-    public AuthenticateResponse authenticate(AuthenticateRequest request) {
+    public AuthenticateResponse authenticate(AuthenticateRequest request, String accessToken, String deviceId) {
+        // Validate access token
+        if (!jwtTokenUtil.validateToken(accessToken)) {
+            return new AuthenticateResponse(true, 4001, "Invalid or expired access token.", null);
+        }
+
+        // Validate device ID from token
+        String deviceIdFromToken = jwtTokenUtil.extractDeviceId(accessToken);
+        if (!deviceId.equals(deviceIdFromToken)) {
+            return new AuthenticateResponse(true, 4002, "Invalid device ID.", null);
+        }
+
         // Validate OTP
-        boolean isValidOtp = otpService.validateOTP(request.getMobileNo(), request.getOtp());
+        boolean isValidOtp = otpService.validateOTP(request.getMobileNo(), request.getOtp(), deviceId);
         if (!isValidOtp) {
             return new AuthenticateResponse(true, 2004, "Invalid or expired OTP.", null);
         }

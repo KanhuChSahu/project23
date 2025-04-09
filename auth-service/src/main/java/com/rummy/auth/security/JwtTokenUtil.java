@@ -25,6 +25,12 @@ public class JwtTokenUtil {
         return createToken(claims, mobileNumber);
     }
 
+    public String generateToken(String clientId, String clientSecret) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("clientSecret", clientSecret);
+        return createToken(claims, clientId);
+    }
+
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)

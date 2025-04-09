@@ -29,19 +29,28 @@ public class AuthController {
             @Valid @RequestBody GenerateOTPRequest request,
             @RequestHeader("Authorization") String authToken,
             @RequestHeader("Device-Id") String deviceId) {
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(GenerateOTPResponse.invalidToken());
+        }
+
         String token = authToken.replace("Bearer ", "");
         try {
-            String mobileNumber = jwtTokenUtil.extractMobileNumber(token);
-            String deviceIdFromToken = jwtTokenUtil.extractDeviceId(token);
-            
-            if (!deviceId.equals(deviceIdFromToken)) {
-                return ResponseEntity.status(401).body(new GenerateOTPResponse("Invalid device ID"));
+            // Validate access token
+            if (!jwtTokenUtil.validateToken(token)) {
+                return ResponseEntity.status(401).body(GenerateOTPResponse.invalidToken());
             }
-            
-            String otp = otpService.generateOTP(request.getMobileNumber());
-            return ResponseEntity.ok(new GenerateOTPResponse("OTP sent successfully"));
+
+            // Validate device ID from token
+            String deviceIdFromToken = jwtTokenUtil.extractDeviceId(token);
+            if (!deviceId.equals(deviceIdFromToken)) {
+                return ResponseEntity.status(401).body(GenerateOTPResponse.invalidDevice());
+            }
+
+            // Generate and send OTP
+            String otp = otpService.generateOTP(request.getMobileNumber(), deviceId);
+            return ResponseEntity.ok(GenerateOTPResponse.success());
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(new GenerateOTPResponse("Invalid or expired token"));
+            return ResponseEntity.status(401).body(GenerateOTPResponse.invalidToken());
         }
     }
 
@@ -59,8 +68,14 @@ public class AuthController {
 
     @PostMapping("/api/v1/login/authenticate")
     public ResponseEntity<AuthenticateResponse> authenticate(
-            @Valid @RequestBody AuthenticateRequest request) {
-        AuthenticateResponse response = authenticationService.authenticate(request);
+            @Valid @RequestBody AuthenticateRequest request,
+            @RequestHeader("Authorization") String authToken,
+            @RequestHeader("Device-Id") String deviceId) {
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(new AuthenticateResponse(true, 4001, "Invalid access token format.", null));
+        }
+        String token = authToken.replace("Bearer ", "");
+        AuthenticateResponse response = authenticationService.authenticate(request, token, deviceId);
         return ResponseEntity.ok(response);
     }
 }

@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS otp (
     otp_id SERIAL PRIMARY KEY,
     mobile_number VARCHAR(15) NOT NULL,
     otp_code VARCHAR(6) NOT NULL,
+    verification_attempts INT DEFAULT 0,
+    device_id VARCHAR(255),
+    status VARCHAR(20) DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
     verified BOOLEAN DEFAULT FALSE

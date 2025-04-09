@@ -9,29 +9,44 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "otps")
+@Table(name = "otp")
 public class OTP {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long otpId;
 
     @Column(nullable = false)
     private String mobileNumber;
 
-    @Column(nullable = false)
-    private String otpValue;
+    @Column(nullable = false, length = 6)
+    private String otpCode;
 
     @Column(nullable = false)
-    private LocalDateTime expiryTime;
+    private int verificationAttempts;
+
+    @Column
+    private String deviceId;
 
     @Column(nullable = false)
-    private boolean used;
+    @Enumerated(EnumType.STRING)
+    private OTPStatus status;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
+
+    @Column(nullable = false)
+    private boolean verified;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (status == null) {
+            status = OTPStatus.PENDING;
+        }
+        verificationAttempts = 0;
+        verified = false;
     }
 }
